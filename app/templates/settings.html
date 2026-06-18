@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+
+{% block title %}设置 - FamilyOS{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>⚙️ 设置</h1>
+    <p>家庭配置 · Home Assistant 集成</p>
+</div>
+
+<!-- ====== 当前状态 ====== -->
+<div class="card" style="border-left:5px solid #4299e1;">
+    <div class="card-body">
+        <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:center;">
+            <div style="font-size:32px;">
+                {% if phase == 'pregnancy' %}🌸
+                {% elif phase == 'postpartum' %}💕
+                {% else %}🌟
+                {% endif %}
+            </div>
+            <div>
+                <div style="font-weight:600;font-size:18px;">当前阶段：{{ phase_display }}</div>
+                <div style="color:#718096;font-size:14px;">
+                    系统根据预产期/宝宝生日自动切换
+                    {% if profile.due_date %}
+                        · 预产期：{{ profile.due_date }}
+                    {% endif %}
+                    {% if profile.baby_birthday %}
+                        · 宝宝生日：{{ profile.baby_birthday }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ====== 配置表单 ====== -->
+<form method="POST" action="/settings/update">
+    
+    <!-- 家庭配置 -->
+    <div class="card">
+        <div class="card-header">👨‍👩‍👦 家庭配置</div>
+        <div class="card-body">
+            <div class="form-group">
+                <label for="family_name">家庭名称</label>
+                <input type="text" class="form-control" id="family_name" name="family_name" 
+                       value="{{ profile.family_name }}" placeholder="我的家庭">
+            </div>
+            
+            <div class="form-group">
+                <label for="due_date">预产期</label>
+                <input type="date" class="form-control" id="due_date" name="due_date" 
+                       value="{{ profile.due_date or '' }}">
+                <small class="form-text">设置后自动进入孕期模式</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="baby_birthday">宝宝生日</label>
+                <input type="date" class="form-control" id="baby_birthday" name="baby_birthday" 
+                       value="{{ profile.baby_birthday or '' }}">
+                <small class="form-text">设置后自动切换月子/育儿模式</small>
+            </div>
+        </div>
+    </div>
+    
+    {% if is_admin %}
+    <!-- Home Assistant 集成 -->
+    <div class="card">
+        <div class="card-header">🤖 Home Assistant 集成</div>
+        <div class="card-body">
+            <div class="form-group">
+                <label for="ha_url">HA 地址</label>
+                <input type="url" class="form-control" id="ha_url" name="ha_url" 
+                       value="{{ profile.ha_url or '' }}" placeholder="http://homeassistant.local:8123">
+                <small class="form-text">Home Assistant 实例的访问地址</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="ha_token">长期访问令牌</label>
+                <input type="password" class="form-control" id="ha_token" name="ha_token" 
+                       value="{{ profile.ha_token or '' }}" placeholder="请输入 HA 长期访问令牌">
+                <small class="form-text">
+                    在 HA 中：用户资料 → 安全 → 创建长期访问令牌
+                    {% if profile.ha_token %}
+                        <span style="color:#48bb78;"> ✅ 已配置</span>
+                    {% endif %}
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="ha_auto_sync" name="ha_auto_sync" value="1"
+                           {% if profile.ha_auto_sync == 1 %}checked{% endif %}
+                           style="width:18px;height:18px;accent-color:var(--color-primary);margin-right:8px;">
+                    🔄 自动同步到 HA（添加记录/库存变更时自动推送）
+                </label>
+            </div>
+            
+            <!-- ====== 按钮区域 ====== -->
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="testHA()">🔌 测试连接</button>
+                <button type="button" class="btn btn-warning btn-sm" onclick="syncCalendar()">📅 同步日历</button>
+                <button type="button" class="btn btn-danger btn-sm" onclick="syncInventory()">📦 同步库存</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="syncAll()">📤 同步全部</button>
+                <span id="haTestResult" style="margin-left:12px;font-size:14px;"></span>
+            </div>
+            
+            <!-- 同步结果 -->
+            <div id="syncResult" style="margin-top:12px;display:none;padding:12px;border-radius:8px;background:#f7fafc;max-height:300px;overflow-y:auto;">
+                <div id="syncContent"></div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- ====== 账号管理 ====== -->
+    <div class="card">
+        <div class="card-header">🔑 账号管理</div>
+        <div class="card-body">
+            <div style="margin-bottom:16px;font-size:13px;color:var(--color-text-muted);" id="currentUserInfo">当前用户：加载中...</div>
+            <div class="form-group">
+                <label for="old_password">旧密码</label>
+                <input type="password" class="form-control" id="old_password" placeholder="请输入当前密码">
+            </div>
+            <div class="form-group">
+                <label for="change_password">新密码</label>
+                <input type="password" class="form-control" id="change_password" placeholder="至少8位字符">
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" onclick="changePassword()">💾 修改密码</button>
+            <span id="pwdResult" style="margin-left:12px;font-size:13px;"></span>
+        </div>
+    </div>
+
+    <!-- 提交按钮 -->
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <button type="submit" class="btn btn-primary" style="padding:12px 40px;">
+            💾 保存设置
+        </button>
+        <button type="reset" class="btn btn-outline" style="padding:12px 32px;">
+            ↩️ 重置
+        </button>
+    </div>
+</form>
+
+    {% if is_admin %}
+    <!-- ====== 数据管理 ====== -->
+    <div class="card" style="border-color:#fc8181;">
+        <div class="card-header" style="color:#e53e3e;">⚠️ 数据管理</div>
+        <div class="card-body">
+            <p style="color:#718096;font-size:14px;margin-bottom:12px;">导出或删除所有数据，请谨慎操作</p>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                <button class="btn btn-outline btn-sm" onclick="exportData()">📤 导出数据</button>
+                <button class="btn btn-danger btn-sm" onclick="clearAllData()">🗑️ 清除所有数据</button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ====== 加载当前用户信息 ======
+(function() {
+    fetch('/api/auth/status')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            var el = document.getElementById('currentUserInfo');
+            if (el && data.logged_in) {
+                el.textContent = '当前用户：' + data.username + '（' + (data.role === 'admin' ? '管理员' : '普通用户') + '）';
+            }
+        });
+})();
+
+// ====== 修改密码 ======
+function changePassword() {
+    var oldPwd = document.getElementById('old_password').value;
+    var newPwd = document.getElementById('change_password').value;
+    var result = document.getElementById('pwdResult');
+    
+    if (!oldPwd) {
+        result.innerHTML = '<span style="color:#e53e3e;">请输入旧密码</span>';
+        return;
+    }
+    if (!newPwd) {
+        result.innerHTML = '<span style="color:#e53e3e;">请输入新密码</span>';
+        return;
+    }
+    if (newPwd.length < 8) {
+        result.innerHTML = '<span style="color:#e53e3e;">新密码至少8位</span>';
+        return;
+    }
+    if (oldPwd === newPwd) {
+        result.innerHTML = '<span style="color:#e53e3e;">新密码不能与旧密码相同</span>';
+        return;
+    }
+    
+    fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ old_password: oldPwd, new_password: newPwd })
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        if (data.success) {
+            result.innerHTML = '<span style="color:#48bb78;">✅ 密码修改成功</span>';
+            document.getElementById('old_password').value = '';
+            document.getElementById('change_password').value = '';
+        } else {
+            result.innerHTML = '<span style="color:#e53e3e;">❌ ' + (data.error || '修改失败') + '</span>';
+        }
+    })
+    .catch(function() {
+        result.innerHTML = '<span style="color:#e53e3e;">❌ 请求失败</span>';
+    });
+}
+
+// ====== 测试 Home Assistant 连接 ======
+function testHA() {
+    var url = document.getElementById('ha_url').value;
+    var token = document.getElementById('ha_token').value;
+    var result = document.getElementById('haTestResult');
+    
+    if (!url || !token) {
+        result.innerHTML = '<span style="color:#e53e3e;">请先填写地址和令牌</span>';
+        return;
+    }
+    
+    result.innerHTML = '<span style="color:#4299e1;">⏳ 测试中...</span>';
+    
+    fetch('/api/ha/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: url, token: token })
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        if (data.success) {
+            result.innerHTML = '<span style="color:#48bb78;">✅ ' + data.message + '</span>';
+        } else {
+            result.innerHTML = '<span style="color:#e53e3e;">❌ ' + data.error + '</span>';
+        }
+    })
+    .catch(function(err) {
+        result.innerHTML = '<span style="color:#e53e3e;">❌ 请求失败</span>';
+    });
+}
+
+// ====== 同步日历到 HA ======
+function syncCalendar() {
+    var result = document.getElementById('haTestResult');
+    var syncResult = document.getElementById('syncResult');
+    var content = document.getElementById('syncContent');
+    
+    result.innerHTML = '<span style="color:#4299e1;">⏳ 同步日历中...</span>';
+    if (syncResult) syncResult.style.display = 'none';
+    
+    fetch('/api/ha/sync/calendar', { method: 'POST' })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        if (data.success) {
+            result.innerHTML = '<span style="color:#48bb78;">✅ ' + data.message + '</span>';
+            if (content && syncResult) {
+                var html = '<div style="font-weight:600;margin-bottom:8px;">📅 日历同步结果</div>';
+                html += '<div>成功: ' + (data.results?.success || 0) + ' 个</div>';
+                if (data.results?.items) {
+                    for (var i = 0; i < data.results.items.length; i++) {
+                        var item = data.results.items[i];
+                        html += '<div style="font-size:13px;padding:2px 0;">' + item.status + ' ' + item.title + '</div>';
+                    }
+                }
+                content.innerHTML = html;
+                syncResult.style.display = 'block';
+            }
+        } else {
+            result.innerHTML = '<span style="color:#e53e3e;">❌ ' + data.error + '</span>';
+        }
+    })
+    .catch(function(err) {
+        result.innerHTML = '<span style="color:#e53e3e;">❌ 请求失败</span>';
+    });
+}
+
+// ====== 同步库存到 HA ======
+function syncInventory() {
+    var result = document.getElementById('haTestResult');
+    var syncResult = document.getElementById('syncResult');
+    var content = document.getElementById('syncContent');
+    
+    result.innerHTML = '<span style="color:#4299e1;">⏳ 同步库存中...</span>';
+    if (syncResult) syncResult.style.display = 'none';
+    
+    fetch('/api/ha/sync/inventory', { method: 'POST' })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        if (data.success) {
+            result.innerHTML = '<span style="color:#48bb78;">✅ ' + data.message + '</span>';
+            if (content && syncResult) {
+                var html = '<div style="font-weight:600;margin-bottom:8px;">📦 库存同步结果</div>';
+                html += '<div>总物品: ' + (data.results?.total_items || 0) + ' | 预警: ' + (data.results?.warning_count || 0) + '</div>';
+                html += '<div style="font-size:13px;color:var(--color-text-muted);">' + (data.results?.status || '') + '</div>';
+                if (data.results?.warnings && data.results.warnings.length > 0) {
+                    html += '<div style="color:#e53e3e;font-weight:600;margin-top:8px;">⚠️ 需要补货:</div>';
+                    for (var i = 0; i < data.results.warnings.length; i++) {
+                        html += '<div style="font-size:13px;padding:2px 0;">📦 ' + data.results.warnings[i] + '</div>';
+                    }
+                }
+                content.innerHTML = html;
+                syncResult.style.display = 'block';
+            }
+        } else {
+            result.innerHTML = '<span style="color:#e53e3e;">❌ ' + data.error + '</span>';
+        }
+    })
+    .catch(function(err) {
+        result.innerHTML = '<span style="color:#e53e3e;">❌ 请求失败</span>';
+    });
+}
+
+// ====== 同步全部到 HA ======
+function syncAll() {
+    if (!confirm('同步所有数据（日历 + 库存）到 Home Assistant？')) return;
+    
+    var result = document.getElementById('haTestResult');
+    result.innerHTML = '<span style="color:#4299e1;">⏳ 同步全部数据...</span>';
+    
+    fetch('/api/ha/sync/all', { method: 'POST' })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        if (data.success) {
+            var msg = [];
+            if (data.calendar?.success) msg.push('📅 日历: ' + data.calendar.results?.success + ' 个');
+            if (data.inventory?.success) msg.push('📦 库存预警: ' + (data.inventory.results?.warning_count || 0) + ' 项');
+            result.innerHTML = '<span style="color:#48bb78;">✅ 同步完成！' + msg.join(' | ') + '</span>';
+            
+            var syncResult = document.getElementById('syncResult');
+            var content = document.getElementById('syncContent');
+            if (syncResult && content) {
+                var html = '<div style="font-weight:600;margin-bottom:8px;">📋 同步完成</div>';
+                if (data.calendar) {
+                    html += '<div>📅 日历: ' + (data.calendar.results?.success || 0) + ' 成功，' + (data.calendar.results?.failed || 0) + ' 失败</div>';
+                }
+                if (data.inventory) {
+                    html += '<div>📦 库存: ' + (data.inventory.results?.success || 0) + ' 成功，' + (data.inventory.results?.failed || 0) + ' 失败</div>';
+                }
+                content.innerHTML = html;
+                syncResult.style.display = 'block';
+            }
+        } else {
+            result.innerHTML = '<span style="color:#e53e3e;">❌ ' + data.error + '</span>';
+        }
+    })
+    .catch(function(err) {
+        result.innerHTML = '<span style="color:#e53e3e;">❌ 请求失败</span>';
+    });
+}
+
+// ====== 导出数据 ======
+function exportData() {
+    var data = {
+        family_name: document.getElementById('family_name').value,
+        due_date: document.getElementById('due_date').value,
+        baby_birthday: document.getElementById('baby_birthday').value,
+        ha_url: document.getElementById('ha_url').value,
+        exported_at: new Date().toISOString()
+    };
+    var blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'familyos_settings_' + new Date().toISOString().slice(0,10) + '.json';
+    a.click();
+}
+
+// ====== 清除所有数据 ======
+function clearAllData() {
+    if (confirm('⚠️ 确定要清除所有数据吗？此操作不可恢复！')) {
+        if (confirm('再次确认：真的要删除所有数据吗？')) {
+            alert('此功能需要后端支持，请在后端实现删除逻辑');
+        }
+    }
+}
+</script>
+{% endblock %}

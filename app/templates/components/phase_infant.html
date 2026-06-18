@@ -1,0 +1,86 @@
+{# ============================================================ #}
+{# FamilyOS - 育儿视图 (v4 — 手机端1×1，首行1×2)              #}
+{# ============================================================ #}
+    <div class="infant-grid">
+        <!-- 第一行：月龄 + 疫苗提醒 (1×2) -->
+        <div class="infant-row-top">
+            <!-- 宝宝月龄 -->
+            <div class="card" style="border-color:var(--color-infant);background:var(--color-infant-bg);display:flex;align-items:center;justify-content:center;">
+                <div class="card-body text-center" style="padding:var(--spacing-lg);width:100%;">
+                    <div style="font-size:var(--font-size-sm);color:#22543d;">🧒 宝宝月龄</div>
+                    <div style="font-size:var(--font-size-3xl);font-weight:700;color:var(--color-infant);" id="monthsOld">?</div>
+                    <div style="font-size:var(--font-size-sm);color:#22543d;">个月</div>
+                    <small style="color:var(--color-text-muted);font-size:var(--font-size-xs);" id="birthdayDisplay2">请先在设置填写宝宝生日</small>
+                </div>
+            </div>
+
+            <!-- 下次疫苗提醒（无最大高度限制，内容自然撑开） -->
+            <div class="card" style="border-color:#e53e3e;" id="infantVaccineCard">
+                <div class="card-header" style="color:#e53e3e;">💉 下次疫苗提醒</div>
+                <div class="card-body" id="infantVaccineReminder" style="padding:var(--spacing-md);">
+                    <div class="text-muted" style="text-align:center;padding:var(--spacing-md);">暂无待接种疫苗</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 日历 -->
+        <div class="card">
+            <div class="card-header">📅 日历视图</div>
+            <div class="card-body" style="padding:0;">
+                <div class="calendar-container" id="infantCalendarContainer">
+                    <div style="text-align:center;padding:var(--spacing-4xl);color:var(--color-text-muted);">⏳ 加载中...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 快捷记录（喂奶、睡眠） -->
+        <div class="card" style="max-height:80px;">
+            <div class="card-header">⚡ 快捷记录</div>
+            <div class="card-body" style="padding:var(--spacing-md);display:flex;gap:var(--spacing-sm);flex-wrap:wrap;">
+                <button class="btn btn-sm btn-success quick-record-btn" data-category="feeding" style="font-size:var(--font-size-xs);padding:var(--spacing-xs) var(--spacing-md);">🍼 喂奶</button>
+                <button class="btn btn-sm btn-primary quick-record-btn" data-category="sleep" style="font-size:var(--font-size-xs);padding:var(--spacing-xs) var(--spacing-md);">😴 睡眠</button>
+            </div>
+        </div>
+
+        <!-- 近期记录时间轴 -->
+        <div class="card">
+            <div class="card-header">📋 近期记录</div>
+            <div class="card-body" id="infantTimelineContainer" style="padding:var(--spacing-md);max-height:300px;overflow-y:auto;">
+                <div class="text-muted" style="text-align:center;padding:var(--spacing-lg);">暂无近期记录</div>
+            </div>
+        </div>
+
+        <!-- 任务看板 -->
+        <div class="card">
+            <div class="card-header">📌 任务看板</div>
+            <div class="card-body" id="taskBoardContainer" style="padding:var(--spacing-md);max-height:260px;overflow-y:auto;">
+                <div class="text-muted" style="text-align:center;padding:var(--spacing-lg);">📌 加载中...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 快捷记录弹窗（与月子期共享） -->
+    <div class="quick-record-modal" id="quickRecordModal">
+        <div class="quick-record-modal-content">
+            <div class="quick-record-modal-head">
+                <span id="qrmTitle">记录</span>
+                <button type="button" id="qrmClose">&times;</button>
+            </div>
+            <div class="quick-record-modal-body">
+                <div class="qrm-row" id="qrmQuantityRow" style="display:none;">
+                    <label id="qrmQuantityLabel">数量</label>
+                    <input type="number" id="qrmQuantity" step="any" placeholder="0">
+                    <span class="qrm-unit" id="qrmUnit"></span>
+                </div>
+                <div class="qrm-row">
+                    <label>备注</label>
+                    <input type="text" id="qrmNote" placeholder="可选">
+                </div>
+            </div>
+            <div class="quick-record-modal-foot">
+                <button type="button" class="btn btn-sm btn-secondary" id="qrmCancel">取消</button>
+                <button type="button" class="btn btn-sm btn-success" id="qrmSubmit">✅ 记录</button>
+            </div>
+        </div>
+    </div>
+</div>

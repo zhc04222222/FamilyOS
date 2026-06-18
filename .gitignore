@@ -1,0 +1,24 @@
+# 私密配置
+.env
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+# 数据库
+data/*.db
+# 上传
+uploads/*
+!uploads/.gitkeep
+# IDE
+.vscode/
+.idea/
+# 日志
+*.log
+
+# 临时文件
+css_end.txt
+css_tail.txt
+test_output.txt
+familyos.tar
+0

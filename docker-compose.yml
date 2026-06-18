@@ -1,0 +1,31 @@
+# ================================================================
+# FamilyOS - Docker Compose (Host 模式)
+# ================================================================
+# 警告：host 模式下容器直接使用宿主机网络栈
+# 请确保宿主机防火墙限制对外暴露的端口
+
+version: "3.8"
+
+services:
+  familyos:
+    image: zhc0422/familyos:latest
+    container_name: familyos
+    user: root
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
+    env_file:
+      - .env
+    volumes:
+      # 持久化数据：SQLite 数据库
+      - ./data:/app/data
+      # 持久化上传文件
+      - ./uploads:/app/uploads
+    # host 模式下 ports 无效，端口由 uvicorn 直接监听
+    # 应用监听 29375 端口，通过宿主机 IP:29375 访问
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

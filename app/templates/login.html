@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - FamilyOS</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: var(--color-bg);
+            font-family: var(--font-family);
+        }
+        .login-card {
+            background: var(--color-bg-card);
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            padding: 40px 32px;
+            width: 100%;
+            max-width: 380px;
+            margin: 20px;
+        }
+        .login-card h1 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: var(--color-text);
+        }
+        .login-card p {
+            text-align: center;
+            font-size: 13px;
+            color: var(--color-text-muted);
+            margin-bottom: 28px;
+        }
+        .login-card .form-group {
+            margin-bottom: 16px;
+        }
+        .login-card label {
+            display: block;
+            font-weight: 500;
+            font-size: 13px;
+            margin-bottom: 6px;
+            color: var(--color-text);
+        }
+        .login-card input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            font-size: 15px;
+            background: var(--color-bg);
+            color: var(--color-text);
+            transition: border-color 0.2s;
+        }
+        .login-card input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px var(--color-primary-light);
+        }
+        .login-card button {
+            width: 100%;
+            padding: 12px;
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: background 0.2s;
+        }
+        .login-card button:hover {
+            background: var(--color-primary-hover);
+        }
+        .login-error {
+            text-align: center;
+            color: var(--color-danger);
+            font-size: 13px;
+            margin-top: 12px;
+            min-height: 20px;
+        }
+        .login-info {
+            text-align: center;
+            font-size: 11px;
+            color: var(--color-text-muted);
+            margin-top: 16px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h1>🏠 FamilyOS</h1>
+        <p>家庭生命周期操作系统</p>
+        <form id="loginForm" onsubmit="doLogin(event)">
+            <div class="form-group">
+                <label for="username">用户名</label>
+                <input type="text" id="username" placeholder="请输入用户名" required autofocus>
+            </div>
+            <div class="form-group">
+                <label for="password">密码</label>
+                <input type="password" id="password" placeholder="请输入密码" required>
+            </div>
+            <div class="form-group" style="display:flex;align-items:center;gap:8px;">
+                <input type="checkbox" id="rememberMe" style="width:16px;height:16px;accent-color:var(--color-primary);">
+                <label for="rememberMe" style="cursor:pointer;font-weight:400;font-size:13px;">记住密码（30天免登录）</label>
+            </div>
+            <button type="submit">登 录</button>
+            <div class="login-error" id="loginError"></div>
+        </form>
+    </div>
+
+    <script>
+        function doLogin(e) {
+            e.preventDefault();
+            var username = document.getElementById('username').value.trim();
+            var password = document.getElementById('password').value;
+            var error = document.getElementById('loginError');
+
+            if (!username || !password) {
+                error.textContent = '请输入用户名和密码';
+                return;
+            }
+
+            var rememberMe = document.getElementById('rememberMe').checked;
+
+            fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: username, password: password, remember_me: rememberMe })
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    window.location.href = '/';
+                } else {
+                    error.textContent = data.error || '登录失败';
+                }
+            })
+            .catch(function() {
+                error.textContent = '网络错误，请重试';
+            });
+        }
+    </script>
+</body>
+</html>

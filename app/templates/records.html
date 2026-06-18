@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}记录中心 - FamilyOS{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/records.css">
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>📝 记录中心</h1>
+    <p>统一查看所有历史数据</p>
+</div>
+
+<!-- 筛选栏 -->
+<div class="card">
+    <div class="card-body">
+        <div class="filter-bar">
+            <select class="form-control form-control-sm" id="filterCategory" onchange="filterRecords()">
+                <option value="">全部分类</option>
+                <option value="checkup">🩺 产检</option>
+                <option value="feeding">🍼 喂奶</option>
+                <option value="sleep">😴 睡眠</option>
+                <option value="diaper">🧻 尿布</option>
+                <option value="bath">🛁 洗澡</option>
+                <option value="vaccine">💉 疫苗</option>
+                <option value="growth">📈 成长记录</option>
+                <option value="task">📌 待办任务</option>
+            </select>
+            <select class="form-control form-control-sm" id="filterStatus" onchange="filterRecords()">
+                <option value="">全部状态</option>
+                <option value="pending">⏳ 待办</option>
+                <option value="done">✅ 已完成</option>
+            </select>
+            <button class="btn btn-success btn-sm" onclick="showAddRecord()">➕ 新增记录</button>
+        </div>
+    </div>
+</div>
+
+<!-- 统计概览 -->
+<div class="row stats-row">
+    <div class="col-4">
+        <div class="card text-center">
+            <div class="card-body" style="padding:16px;">
+                <div style="font-size:28px;">📋</div>
+                <div style="font-size:20px;font-weight:700;" id="totalCount">0</div>
+                <small class="text-muted">总记录</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card text-center">
+            <div class="card-body" style="padding:16px;">
+                <div style="font-size:28px;">⏳</div>
+                <div style="font-size:20px;font-weight:700;color:#d69e2e;" id="pendingCount">0</div>
+                <small class="text-muted">待办</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card text-center">
+            <div class="card-body" style="padding:16px;">
+                <div style="font-size:28px;">✅</div>
+                <div style="font-size:20px;font-weight:700;color:#48bb78;" id="doneCount">0</div>
+                <small class="text-muted">已完成</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 记录列表 -->
+<div class="card">
+    <div class="card-header">
+        记录列表
+        <span class="card-count" id="recordCount">共 0 条</span>
+    </div>
+    <div class="card-body table-wrapper">
+        <div id="loadingState" class="loading-text">⏳ 加载中...</div>
+        <div id="emptyState" class="empty-block" style="display:none;">
+            <div class="empty-icon">📭</div>
+            <p>暂无记录</p>
+        </div>
+        <div id="recordList" style="display:none;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>时间</th>
+                        <th>分类</th>
+                        <th>标题</th>
+                        <th>状态</th>
+                        <th>照片</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="recordTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 新增记录弹窗 -->
+<div id="addRecordModal" class="modal-overlay">
+    <div class="modal-box">
+        <h3 class="modal-title">➕ 新增记录</h3>
+        <form id="addRecordForm" onsubmit="submitRecord(event)">
+            <div class="form-group">
+                <label>标题 *</label>
+                <input type="text" class="form-control" id="recordTitle" required>
+            </div>
+            <div class="form-group">
+                <label>分类 *</label>
+                <select class="form-control" id="recordCategory" required>
+                    <option value="checkup">🩺 产检</option>
+                    <option value="feeding">🍼 喂奶</option>
+                    <option value="sleep">😴 睡眠</option>
+                    <option value="diaper">🧻 尿布</option>
+                    <option value="bath">🛁 洗澡</option>
+                    <option value="vaccine">💉 疫苗</option>
+                    <option value="growth">📈 成长记录</option>
+                    <option value="task">📌 待办任务</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>时间 *</label>
+                <input type="datetime-local" class="form-control" id="recordTime" required>
+            </div>
+            <div class="form-group">
+                <label>内容</label>
+                <textarea class="form-control" id="recordContent" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label>📷 上传照片（可多选）</label>
+                <input type="file" class="form-control" id="recordPhotos" accept="image/*" multiple>
+                <div id="photoPreview" class="photo-preview-row"></div>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn btn-success" style="flex:1;">💾 保存</button>
+                <button type="button" class="btn btn-outline" onclick="closeModal()">取消</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/records.js"></script>
+{% endblock %}

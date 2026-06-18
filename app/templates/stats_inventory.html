@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}库存统计 - FamilyOS{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/stats.css">
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>💰 库存统计</h1>
+    <p>库存价值 · 月开销 · 本月已购 · 各品类详情</p>
+</div>
+
+<div class="stats-grid" id="inventoryStats">
+    <div class="card stats-card highlight">
+        <div class="card-header">💰 总消费</div>
+        <div class="card-body">
+            <div style="font-size:36px;font-weight:700;color:#48bb78;" id="sTotalSpent">¥0</div>
+        </div>
+    </div>
+    <div class="card stats-card highlight">
+        <div class="card-header">💰 本月消费</div>
+        <div class="card-body">
+            <div style="font-size:36px;font-weight:700;color:#ed8936;" id="sMonthSpent">¥0</div>
+        </div>
+    </div>
+    <div class="card stats-card highlight">
+        <div class="card-header">💰 平均每日消费</div>
+        <div class="card-body">
+            <div style="font-size:36px;font-weight:700;color:#4299e1;" id="sAvgDailySpent">¥0</div>
+        </div>
+    </div>
+    <div class="card stats-card" style="grid-column: 1 / -1;">
+        <div class="card-header">📋 各品类详情</div>
+        <div class="card-body table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr><th>物品</th><th>库存</th><th>单价</th><th>累计花费</th><th>累计购买</th><th>累计消耗</th><th>状态</th></tr>
+                </thead>
+                <tbody id="sInventoryTable"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    window.STATS_PHASE = '{{ phase }}';
+</script>
+<script src="/static/js/stats.js"></script>
+{% endblock %}

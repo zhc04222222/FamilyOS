@@ -1,0 +1,92 @@
+{# ============================================================ #}
+{# FamilyOS - 月子视图                                          #}
+{# ============================================================ #}
+    <div class="row" id="phasePostpartum">
+        <div class="col-8">
+            <div class="card mb-3">
+                <div class="card-header">⚡ 快捷记录</div>
+                <div class="card-body" style="padding:var(--spacing-md);display:flex;gap:var(--spacing-sm);flex-wrap:wrap;">
+                    <button class="btn btn-sm btn-success quick-record-btn" data-category="feeding" style="font-size:var(--font-size-xs);padding:var(--spacing-xs) var(--spacing-md);">🍼 喂奶</button>
+                    <button class="btn btn-sm btn-primary quick-record-btn" data-category="sleep" style="font-size:var(--font-size-xs);padding:var(--spacing-xs) var(--spacing-md);">😴 睡眠</button>
+                    <button class="btn btn-sm btn-warning quick-record-btn" data-category="diaper" style="font-size:var(--font-size-xs);padding:var(--spacing-xs) var(--spacing-md);">🧻 尿布</button>
+                    <button class="btn btn-sm btn-info quick-record-btn" data-category="bath" style="font-size:var(--font-size-xs);padding:var(--spacing-xs) var(--spacing-md);">🛁 洗澡</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">⏳ 时间轴 <span style="font-weight:400;color:var(--color-text-muted);font-size:var(--font-size-sm);float:right;">近7天</span></div>
+                <div class="card-body" id="timelineContainer" style="max-height:450px;overflow-y:auto;padding:var(--spacing-sm) var(--spacing-md);">
+                    <div class="text-muted" style="text-align:center;padding:var(--spacing-3xl);font-size:var(--font-size-sm);">🕐 加载中...</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card" style="border-color:var(--color-postpartum);background:var(--color-postpartum-bg);">
+                <div class="card-body text-center" style="padding:var(--spacing-lg);">
+                    <div style="font-size:var(--font-size-sm);color:#742a2a;">👶 宝宝日龄</div>
+                    <div style="font-size:var(--font-size-3xl);font-weight:700;color:var(--color-postpartum);" id="daysSinceBirth">?</div>
+                    <div style="font-size:var(--font-size-sm);color:#742a2a;">天</div>
+                    <small style="color:var(--color-text-muted);font-size:var(--font-size-xs);" id="birthdayDisplay">请先在设置填写宝宝生日</small>
+                </div>
+            </div>
+            <div class="card mt-3">
+                <div class="card-header">📊 今日统计</div>
+                <div class="card-body" style="padding:var(--spacing-md);">
+                    <div class="row" id="todayStats">
+                        <div class="col-6" style="padding:var(--spacing-xs);">
+                            <div class="stat-card" style="padding:var(--spacing-sm);">
+                                <div style="font-size:var(--font-size-xl);">🍼</div>
+                                <div class="stat-number" id="statFeeding" style="font-size:var(--font-size-lg);">0</div>
+                                <div class="stat-label" style="font-size:var(--font-size-xs);">喂奶</div>
+                            </div>
+                        </div>
+                        <div class="col-6" style="padding:var(--spacing-xs);">
+                            <div class="stat-card" style="padding:var(--spacing-sm);">
+                                <div style="font-size:var(--font-size-xl);">😴</div>
+                                <div class="stat-number" id="statSleep" style="font-size:var(--font-size-lg);">0</div>
+                                <div class="stat-label" style="font-size:var(--font-size-xs);">睡眠</div>
+                            </div>
+                        </div>
+                        <div class="col-6" style="padding:var(--spacing-xs);">
+                            <div class="stat-card" style="padding:var(--spacing-sm);">
+                                <div style="font-size:var(--font-size-xl);">🧻</div>
+                                <div class="stat-number" id="statDiaper" style="font-size:var(--font-size-lg);">0</div>
+                                <div class="stat-label" style="font-size:var(--font-size-xs);">尿布</div>
+                            </div>
+                        </div>
+                        <div class="col-6" style="padding:var(--spacing-xs);">
+                            <div class="stat-card" style="padding:var(--spacing-sm);">
+                                <div style="font-size:var(--font-size-xl);">🛁</div>
+                                <div class="stat-number" id="statBath" style="font-size:var(--font-size-lg);">0</div>
+                                <div class="stat-label" style="font-size:var(--font-size-xs);">洗澡</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 快捷记录弹窗 -->
+    <div class="quick-record-modal" id="quickRecordModal">
+        <div class="quick-record-modal-content">
+            <div class="quick-record-modal-head">
+                <span id="qrmTitle">记录</span>
+                <button type="button" id="qrmClose">&times;</button>
+            </div>
+            <div class="quick-record-modal-body">
+                <div class="qrm-row" id="qrmQuantityRow" style="display:none;">
+                    <label id="qrmQuantityLabel">数量</label>
+                    <input type="number" id="qrmQuantity" step="any" placeholder="0">
+                    <span class="qrm-unit" id="qrmUnit"></span>
+                </div>
+                <div class="qrm-row">
+                    <label>备注</label>
+                    <input type="text" id="qrmNote" placeholder="可选">
+                </div>
+            </div>
+            <div class="quick-record-modal-foot">
+                <button type="button" class="btn btn-sm btn-secondary" id="qrmCancel">取消</button>
+                <button type="button" class="btn btn-sm btn-success" id="qrmSubmit">✅ 记录</button>
+            </div>
+        </div>
+    </div>

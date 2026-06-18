@@ -1,0 +1,76 @@
+/* ====== 统计页面样式 ====== */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.stats-card {
+    border: 1px solid #e2e8f0;
+}
+
+.stats-card.highlight {
+    border-left: 5px solid #48bb78;
+}
+
+.stats-card .card-header {
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 16px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid #f7fafc;
+}
+
+.stat-row:last-child {
+    border-bottom: none;
+}
+
+.stat-row span {
+    color: #718096;
+    font-size: 13px;
+}
+
+.stat-row strong {
+    font-size: 16px;
+    color: #2d3748;
+}
+
+/* ====== Canvas 图表容器 ====== */
+.chart-canvas-wrap {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #edf2f7;
+    width: 100%;
+    overflow: hidden;
+}
+
+.chart-canvas-wrap canvas {
+    display: block;
+    max-width: 100%;
+}
+
+/* ====== 周期按钮 ====== */
+.period-btn.active {
+    background: var(--color-primary, #4299e1) !important;
+    color: #fff !important;
+    border-color: var(--color-primary, #4299e1) !important;
+}
+
+/* ====== 库存表 ====== */
+#sInventoryTable td {
+    font-size: 13px;
+}
+
+/* ====== 响应式 ====== */
+@media (max-width: 600px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}

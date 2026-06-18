@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}首页 - {{ phase_display }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/home.css">
+{% endblock %}
+
+{% block content %}
+
+<!-- ============================================================ -->
+<!-- ========== 阶段横幅 ========== -->
+<!-- ============================================================ -->
+<div class="phase-banner phase-{{ phase }}">
+    <div class="phase-banner-icon">
+        {% if phase == 'pregnancy' %}🌸
+        {% elif phase == 'postpartum' %}💕
+        {% else %}🌟{% endif %}
+    </div>
+    <div class="phase-banner-info">
+        <h2>{{ phase_display }}</h2>
+        <p>
+            {% if phase == 'pregnancy' %}孕周 · 产检 · 倒计时 · 待办
+            {% elif phase == 'postpartum' %}喂奶 · 睡眠 · 尿布 · 洗澡 · 异常记录
+            {% else %}疫苗 · 体检 · 成长任务 · 长期规划{% endif %}
+        </p>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ========== 阶段指示器 + 快速添加栏 ========== -->
+<!-- ============================================================ -->
+<div class="phase-indicators">
+    <span class="dot pregnancy {% if phase == 'pregnancy' %}active{% endif %}"></span>
+    <span class="dot postpartum {% if phase == 'postpartum' %}active{% endif %}"></span>
+    <span class="dot infant {% if phase == 'infant' %}active{% endif %}"></span>
+    <span style="font-size:var(--font-size-sm);color:var(--color-text-muted);margin-left:var(--spacing-sm);">
+        {% if phase == 'pregnancy' %}🤰 孕期
+        {% elif phase == 'postpartum' %}👶 月子期
+        {% else %}🧒 育儿期{% endif %}
+    </span>
+</div>
+
+<!-- ============================================================ -->
+<!-- ========== Toast 通知 ========== -->
+<!-- ============================================================ -->
+<div id="toast" class="toast-notification"></div>
+
+<!-- ============================================================ -->
+<!-- ========== 阶段视图（按需 include） ========== -->
+<!-- ============================================================ -->
+{% if phase == 'pregnancy' %}
+{% include "components/phase_pregnancy.html" %}
+{% elif phase == 'postpartum' %}
+{% include "components/phase_postpartum.html" %}
+{% else %}
+{% include "components/phase_infant.html" %}
+{% endif %}
+
+<!-- ============================================================ -->
+<!-- ========== 事件详情弹窗 ========== -->
+<!-- ============================================================ -->
+{% include "components/event_modal.html" %}
+
+<!-- ========== 日期事件列表弹窗（日历日期点击, 孕期和育儿共享） ========== -->
+<div class="event-detail-modal" id="dayEventsModal">
+    <div class="modal-content" style="max-width:520px;">
+        <button class="modal-close" id="dayEventsModalCloseBtn">✕</button>
+        <h3 id="dayEventsModalTitle" style="margin-bottom:var(--spacing-md);font-size:var(--font-size-lg);">📅 日期事件</h3>
+        <div id="dayEventsModalBody" style="max-height:40vh;overflow-y:auto;">
+            <div class="text-muted" style="text-align:center;padding:var(--spacing-lg);">加载中...</div>
+        </div>
+        <!-- 内嵌添加表单（默认隐藏, 类别由 JS 动态注入） -->
+        <div id="dayEventsAddForm" style="display:none;margin-top:var(--spacing-md);padding:var(--spacing-md);background:var(--color-bg);border-radius:8px;border:1px solid var(--color-border);">
+            <div style="font-weight:600;font-size:13px;margin-bottom:8px;">📝 添加记录到 <span id="dayEventsAddDate"></span></div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+                <input type="text" id="dayEventsAddTitle" placeholder="标题" style="padding:7px 10px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;">
+                <select id="dayEventsAddCategory" style="padding:7px 10px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;">
+                </select>
+                <input type="time" id="dayEventsAddTime" value="09:00" style="padding:7px 10px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;">
+                <textarea id="dayEventsAddContent" placeholder="备注/详情" rows="2" style="padding:7px 10px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;resize:vertical;font-family:inherit;"></textarea>
+                <div style="display:flex;gap:8px;">
+                    <button class="btn btn-sm btn-success" id="dayEventsAddSubmit" style="flex:1;">✅ 提交</button>
+                    <button class="btn btn-sm btn-ghost" id="dayEventsAddCancel">取消</button>
+                </div>
+            </div>
+        </div>
+        <div style="margin-top:var(--spacing-md);text-align:right;" id="dayEventsAddBtnRow">
+            <button class="btn btn-sm btn-primary" id="dayEventsAddBtn">➕ 在此日期添加</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+{# ====== 将服务端数据注入 JS 全局变量 ====== #}
+<script>
+    window.HOME_PHASE = '{{ phase }}';
+    window.HOME_PROFILE = {
+        due_date: '{{ profile.due_date if profile.due_date else "" }}',
+        baby_birthday: '{{ profile.baby_birthday if profile.baby_birthday else "" }}'
+    };
+    window.HOME_DAYS_UNTIL = '{{ days_until if days_until is not none else "" }}';
+    window.HOME_DAYS_SINCE_BIRTH = '{{ days_since_birth if days_since_birth is not none else "" }}';
+    window.HOME_MONTHS_OLD = '{{ months_old if months_old is not none else "" }}';
+</script>
+
+{# ====== 首页 JS 逻辑 ====== #}
+<script src="/static/js/home.js"></script>
+{% endblock %}

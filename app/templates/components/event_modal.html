@@ -1,0 +1,19 @@
+{# ============================================================ #}
+{# FamilyOS - 事件详情弹窗（可复用组件）                          #}
+{# ============================================================ #}
+<div class="event-detail-modal" id="eventModal">
+    <div class="modal-content">
+        <button class="modal-close" id="modalCloseBtn">✕</button>
+        <h3 id="modalTitle" style="margin-bottom:var(--spacing-md);font-size:var(--font-size-lg);">📋 事件详情</h3>
+        <div id="modalBody">
+            <p style="margin:var(--spacing-sm) 0;"><strong>分类：</strong><span id="modalCategory"></span></p>
+            <p style="margin:var(--spacing-sm) 0;"><strong>时间：</strong><span id="modalTime"></span></p>
+            <p style="margin:var(--spacing-sm) 0;"><strong>内容：</strong><span id="modalContent" style="color:var(--color-text-muted);"></span></p>
+            <p style="margin:var(--spacing-sm) 0;"><strong>状态：</strong><span id="modalStatus"></span></p>
+        </div>
+        <div style="display:flex;gap:var(--spacing-sm);margin-top:var(--spacing-md);">
+            <button class="btn btn-sm btn-success" id="statusToggleBtn">✅ 标记完成</button>
+            <button class="btn btn-sm btn-danger" id="modalDeleteBtn">🗑️ 删除</button>
+        </div>
+    </div>
+</div>

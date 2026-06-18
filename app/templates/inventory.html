@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}库存管理 - FamilyOS{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/inventory.css">
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>📦 库存管理</h1>
+    <p>纸尿裤 · 湿巾 · 奶粉 · 药品 — 消耗品监控</p>
+</div>
+
+<!-- 统计概览 -->
+<div class="row stats-row">
+    <div class="col-4">
+        <div class="card text-center">
+            <div class="card-body" style="padding:16px;">
+                <div style="font-size:28px;">📦</div>
+                <div style="font-size:20px;font-weight:700;" id="totalCount">0</div>
+                <small class="text-muted">总物品</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card text-center" style="border-color:#fc8181;">
+            <div class="card-body" style="padding:16px;">
+                <div style="font-size:28px;">⚠️</div>
+                <div style="font-size:20px;font-weight:700;color:#e53e3e;" id="warningCount">0</div>
+                <small class="text-muted">需要补货</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card text-center">
+            <div class="card-body" style="padding:16px;">
+                <div style="font-size:28px;">📊</div>
+                <div style="font-size:20px;font-weight:700;" id="categoryCount">0</div>
+                <small class="text-muted">品类数量</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 操作栏 -->
+<div class="card">
+    <div class="card-body">
+        <div class="filter-bar">
+            <input type="text" class="form-control form-control-sm" placeholder="🔍 搜索物品..." id="searchInput" oninput="searchInventory()">
+            <button class="btn btn-success btn-sm" onclick="showAddItem()">➕ 添加物品</button>
+        </div>
+    </div>
+</div>
+
+<!-- 库存列表 -->
+<div class="card">
+    <div class="card-header">
+        物品列表
+        <span class="card-count" id="itemCount">共 0 件</span>
+    </div>
+    <div class="card-body table-wrapper">
+        <div id="emptyState" class="empty-block">
+            <div class="empty-icon">📦</div>
+            <p>暂无库存物品</p>
+            <small>点击「添加物品」开始管理</small>
+        </div>
+        <div id="inventoryList" style="display:none;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>物品名称</th>
+                        <th>库存数量</th>
+                        <th>每日消耗</th>
+                        <th>预计用完</th>
+                        <th>预警线</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="inventoryTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 添加物品弹窗 -->
+<div id="addItemModal" class="modal-overlay">
+    <div class="modal-box">
+        <h3 class="modal-title">➕ 添加物品</h3>
+        <form id="addItemForm" onsubmit="submitItem(event)">
+            <div class="form-group">
+                <label>物品名称 *</label>
+                <input type="text" class="form-control" id="itemName" required placeholder="如：纸尿裤">
+            </div>
+            <div class="form-group">
+                <label>初始数量 *</label>
+                <input type="number" class="form-control" id="itemQuantity" required value="0" step="0.5" min="0">
+            </div>
+            <div class="form-group">
+                <label>每日消耗量</label>
+                <input type="number" class="form-control" id="itemDailyUse" value="0" step="0.5" min="0">
+                <small class="form-text">设置后会自动计算预计用完时间</small>
+            </div>
+            <div class="form-group">
+                <label>预警线</label>
+                <input type="number" class="form-control" id="itemWarning" value="5" step="0.5" min="0">
+                <small class="form-text">低于此数量时显示预警</small>
+            </div>
+            <div class="form-group">
+                <label>单位</label>
+                <input type="text" class="form-control" id="itemUnit" value="件" placeholder="件/包/盒">
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn btn-success" style="flex:1;">💾 保存</button>
+                <button type="button" class="btn btn-outline" onclick="closeItemModal()">取消</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 消耗弹窗 -->
+<div id="consumeModal" class="modal-overlay">
+    <div class="modal-box">
+        <h3 class="modal-title" id="consumeTitle">➖ 消耗</h3>
+        <div style="margin-bottom:16px;">
+            <label style="display:block;font-weight:500;margin-bottom:6px;">当前数量：<span id="consumeCurrentQty" style="font-weight:700;font-size:20px;">0</span></label>
+        </div>
+        <div class="adjust-btns">
+            <button class="btn btn-danger" onclick="consumeAction(1)" style="flex:1;">-1</button>
+            <button class="btn btn-danger" onclick="consumeAction(5)" style="flex:1;">-5</button>
+            <button class="btn btn-danger" onclick="consumeAction(10)" style="flex:1;">-10</button>
+        </div>
+        <div class="adjust-custom">
+            <input type="number" class="form-control" id="consumeInput" placeholder="自定义消耗数量" style="flex:2;">
+            <button class="btn btn-primary" onclick="consumeCustom()" style="flex:1;">➖ 消耗</button>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-outline" onclick="closeConsumeModal()" style="flex:1;">关闭</button>
+        </div>
+    </div>
+</div>
+
+<!-- 补货弹窗 -->
+<div id="purchaseModal" class="modal-overlay">
+    <div class="modal-box" style="max-width:480px;">
+        <h3 class="modal-title" id="purchaseTitle">🛒 补货</h3>
+        <div style="margin-bottom:12px;">
+            <label style="display:block;font-weight:500;margin-bottom:6px;">当前数量：<span id="purchaseCurrentQty" style="font-weight:700;font-size:20px;">0</span></label>
+        </div>
+        <form id="purchaseForm" onsubmit="submitPurchase(event)">
+            <div class="form-group">
+                <label>购买数量 *</label>
+                <input type="number" class="form-control" id="purchaseQty" required step="0.5" min="0" placeholder="如：60">
+            </div>
+            <div class="form-group">
+                <label>单价（元）*</label>
+                <input type="number" class="form-control" id="purchasePrice" required step="0.01" min="0" placeholder="如：80">
+            </div>
+            <div class="form-group">
+                <label>总价</label>
+                <div style="font-size:24px;font-weight:700;color:#48bb78;" id="purchaseTotal">¥0</div>
+            </div>
+            <div class="form-group">
+                <label>备注（可选）</label>
+                <input type="text" class="form-control" id="purchaseNote" placeholder="购买渠道、品牌等">
+            </div>
+            <div class="form-group">
+                <label>📋 购买历史</label>
+                <div style="max-height:120px;overflow-y:auto;">
+                    <table class="data-table" style="width:100%;">
+                        <thead><tr><th>日期</th><th>数量</th><th>单价</th><th>总价</th></tr></thead>
+                        <tbody id="purchaseHistoryBody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn btn-success" style="flex:1;">🛒 确认补货</button>
+                <button type="button" class="btn btn-outline" onclick="closePurchaseModal()">取消</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Toast 通知 -->
+<div id="toast" class="page-toast"></div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/inventory.js"></script>
+{% endblock %}

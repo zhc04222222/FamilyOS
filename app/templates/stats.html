@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}记录统计 - FamilyOS{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/stats.css">
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>📊 记录统计</h1>
+    <p>喂奶 · 睡眠 · 尿布 · 洗澡 · 疫苗 · 成长 · 任务</p>
+</div>
+
+<div class="card" style="margin-bottom:16px;">
+    <div class="card-body" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <span style="font-weight:600;">📅 统计周期：</span>
+        <button class="btn btn-sm btn-outline period-btn active" data-days="7">近7天</button>
+        <button class="btn btn-sm btn-outline period-btn" data-days="30">近30天</button>
+        <span id="statsLoading" style="display:none;color:#a0aec0;font-size:14px;">⏳ 加载中...</span>
+    </div>
+</div>
+
+<div class="stats-grid" id="eventsStats"></div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    window.STATS_PHASE = '{{ phase }}';
+</script>
+<script src="/static/js/stats.js"></script>
+{% endblock %}

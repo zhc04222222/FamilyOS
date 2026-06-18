@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no">
+    
+    <!-- ====== iOS PWA（添加到主屏幕后消除 Safari 边缘手势） ====== -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FamilyOS">
+
+    <!-- ====== iOS 主屏幕图标 ====== -->
+    <link rel="apple-touch-icon" href="/static/img/icon-180.png">
+
+    <title>{% block title %}FamilyOS - 家庭生命周期操作系统{% endblock %}</title>
+    
+    <!-- ====== Favicon ====== -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 56 C10 40 2 28 2 18 C2 8 10 2 18 2 C24 2 30 6 32 12 C34 6 40 2 46 2 C54 2 62 8 62 18 C62 28 54 40 32 56Z' fill='%23ecc94b'/%3E%3Ctext x='32' y='39' text-anchor='middle' font-size='28' font-weight='700' fill='%23744210' font-family='Arial,sans-serif'%3EZ%3C/text%3E%3C/svg%3E">
+    
+    <!-- ====== 基础样式 ====== -->
+    <link rel="stylesheet" href="/static/css/style.css">
+    
+    <!-- ====== 额外样式 ====== -->
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- ========== 侧边栏遮罩 ========== -->
+<!-- ============================================================ -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- ============================================================ -->
+<!-- ========== 移动端顶部导航栏 ========== -->
+<!-- ============================================================ -->
+<header class="topbar" role="banner">
+    <button 
+        class="menu-btn" 
+        id="menuToggle"
+        aria-label="切换导航菜单" 
+        aria-expanded="false"
+        aria-controls="sidebar"
+    >
+        ☰
+    </button>
+    <span class="topbar-title" id="topbarTitle">
+        {% block topbar_title %}FamilyOS{% endblock %}
+    </span>
+</header>
+
+<!-- ============================================================ -->
+<!-- ========== 侧边栏导航 ========== -->
+<!-- ============================================================ -->
+<nav class="sidebar" id="sidebar" role="navigation" aria-label="主导航">
+    <!-- 侧边栏头部 -->
+    <div class="sidebar-header">
+        <h2 class="brand-full">🏠 FamilyOS</h2>
+        <!-- 手机模式只显示图标 -->
+        <span class="brand-icon" style="display:none;font-size:28px;line-height:1;">🏠</span>
+        <button 
+            class="sidebar-toggle" 
+            id="sidebarClose"
+            aria-label="关闭导航菜单"
+        >
+            ✕
+        </button>
+    </div>
+    
+    <!-- 导航链接 -->
+    <div class="sidebar-nav">
+        {% block sidebar_nav %}
+        <a href="/" class="{% if active_menu == 'home' %}active{% endif %}">
+            <span class="nav-icon">🌱</span>
+            <span class="nav-label">首页</span>
+        </a>
+        <a href="/records" class="{% if active_menu == 'records' %}active{% endif %}">
+            <span class="nav-icon">📝</span>
+            <span class="nav-label">记录</span>
+        </a>
+        <a href="/inventory" class="{% if active_menu == 'inventory' %}active{% endif %}">
+            <span class="nav-icon">📦</span>
+            <span class="nav-label">库存</span>
+        </a>
+        <a href="/pictures" class="{% if active_menu == 'pictures' %}active{% endif %}">
+            <span class="nav-icon">🖼️</span>
+            <span class="nav-label">图库</span>
+        </a>
+        <a href="/stats" class="{% if active_menu == 'stats' %}active{% endif %}">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">记录统计</span>
+        </a>
+        <a href="/stats/inventory" class="{% if active_menu == 'stats_inventory' %}active{% endif %}">
+            <span class="nav-icon">💰</span>
+            <span class="nav-label">库存统计</span>
+        </a>
+        <a href="/settings" class="{% if active_menu == 'settings' %}active{% endif %}">
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-label">设置</span>
+        </a>
+        {% endblock %}
+    </div>
+    
+    <!-- 侧边栏底部 -->
+    <div class="sidebar-footer">
+        <small class="footer-full">v1.0.0 · {{ phase_display|default('孕期') }}</small>
+        <small class="footer-icon" style="display:none;">v1.0</small>
+    </div>
+</nav>
+
+<!-- ============================================================ -->
+<!-- ========== 主内容区域 ========== -->
+<!-- ============================================================ -->
+<main class="content" id="mainContent" role="main">
+    {% block content %}{% endblock %}
+</main>
+
+<!-- ============================================================ -->
+<!-- ========== JavaScript 核心逻辑 ========== -->
+<!-- ============================================================ -->
+<script>
+/**
+ * FamilyOS - 侧边栏控制器（极简版）
+ * 只保留按钮点击开关功能，无动画/手势/缩放/ESC/外部点击
+ */
+(function() {
+    'use strict';
+
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebarClose = document.getElementById('sidebarClose');
+    let isOpen = false;
+
+    function isMobile() {
+        return window.innerWidth <= 768;
+    }
+
+    function updateSidebarMode() {
+        const mobile = isMobile();
+        if (mobile) {
+            sidebar.classList.add('mobile-collapsed');
+            document.querySelector('.brand-full').style.display = 'none';
+            document.querySelector('.brand-icon').style.display = 'block';
+            document.querySelector('.footer-full').style.display = 'none';
+            document.querySelector('.footer-icon').style.display = 'block';
+        } else {
+            sidebar.classList.remove('mobile-collapsed', 'open');
+            overlay.classList.remove('active');
+            document.querySelector('.brand-full').style.display = 'block';
+            document.querySelector('.brand-icon').style.display = 'none';
+            document.querySelector('.footer-full').style.display = 'block';
+            document.querySelector('.footer-icon').style.display = 'none';
+            isOpen = false;
+        }
+    }
+
+    function toggleSidebar() {
+        isOpen = !isOpen;
+        if (isOpen) {
+            sidebar.classList.add('open');
+            sidebar.classList.remove('mobile-collapsed');
+            overlay.classList.add('active');
+            document.querySelector('.brand-full').style.display = 'block';
+            document.querySelector('.brand-icon').style.display = 'none';
+            document.querySelector('.footer-full').style.display = 'block';
+            document.querySelector('.footer-icon').style.display = 'none';
+        } else {
+            sidebar.classList.remove('open');
+            sidebar.classList.add('mobile-collapsed');
+            overlay.classList.remove('active');
+            document.querySelector('.brand-full').style.display = 'none';
+            document.querySelector('.brand-icon').style.display = 'block';
+            document.querySelector('.footer-full').style.display = 'none';
+            document.querySelector('.footer-icon').style.display = 'block';
+        }
+        menuToggle.setAttribute('aria-expanded', isOpen);
+    }
+
+    // 只保留两个按钮事件
+    menuToggle.addEventListener('click', toggleSidebar);
+    sidebarClose.addEventListener('click', toggleSidebar);
+    overlay.addEventListener('click', toggleSidebar);
+
+    // 窗口变大时恢复桌面模式
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 768) updateSidebarMode();
+    });
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        updateSidebarMode();
+
+        const titleEl = document.querySelector('.page-header h1');
+        const topbarTitle = document.getElementById('topbarTitle');
+        if (titleEl && topbarTitle) {
+            topbarTitle.textContent = titleEl.textContent;
+        }
+        const phaseTitle = document.querySelector('.phase-banner-info h2');
+        if (phaseTitle && topbarTitle && !titleEl) {
+            topbarTitle.textContent = phaseTitle.textContent;
+        }
+    });
+})();
+</script>
+
+<!-- ============================================================ -->
+<!-- ========== 基础 JavaScript 扩展 ========== -->
+<!-- ============================================================ -->
+<script>
+(function() {
+    'use strict';
+
+    window.updateTopbarTitle = function(title) {
+        const el = document.getElementById('topbarTitle');
+        if (el) el.textContent = title;
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const titleEl = document.querySelector('.page-header h1');
+        if (titleEl) {
+            updateTopbarTitle(titleEl.textContent);
+        }
+    });
+
+})();
+</script>
+
+<!-- ============================================================ -->
+<!-- ========== 额外脚本块 ========== -->
+<!-- ============================================================ -->
+{% block extra_js %}{% endblock %}
+
+<!-- ============================================================ -->
+<!-- ========== 主 JavaScript 文件 ========== -->
+<!-- ============================================================ -->
+<script src="/static/js/main.js"></script>
+
+</body>
+</html>

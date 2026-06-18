@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}图库 - FamilyOS{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/picture.css">
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>🖼️ 图库</h1>
+    <p>按照时间轴查看所有照片</p>
+</div>
+
+<!-- 操作栏 -->
+<div class="card">
+    <div class="card-body">
+        <div class="filter-bar">
+            <select class="form-control form-control-sm" id="filterCategory" onchange="PicturePage.filter()">
+                <option value="">全部分类</option>
+                <option value="checkup">🩺 产检</option>
+                <option value="feeding">🍼 喂奶</option>
+                <option value="sleep">😴 睡眠</option>
+                <option value="diaper">🧻 尿布</option>
+                <option value="bath">🛁 洗澡</option>
+                <option value="vaccine">💉 疫苗</option>
+                <option value="growth">📈 成长记录</option>
+                <option value="task">📌 待办任务</option>
+            </select>
+
+        </div>
+    </div>
+</div>
+
+<!-- 统计 -->
+<div class="row stats-row">
+    <div class="col-4">
+        <div class="card text-center">
+            <div class="card-body" style="padding:16px;">
+                <div style="font-size:28px;">🖼️</div>
+                <div style="font-size:20px;font-weight:700;" id="totalPhotos">0</div>
+                <small class="text-muted">总照片</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card text-center">
+            <div class="card-body" style="padding:16px;">
+                <div style="font-size:28px;">📅</div>
+                <div style="font-size:20px;font-weight:700;color:#4299e1;" id="totalDays">0</div>
+                <small class="text-muted">记录天数</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card text-center">
+            <div class="card-body" style="padding:16px;">
+                <div style="font-size:28px;">📁</div>
+                <div style="font-size:20px;font-weight:700;color:#48bb78;" id="totalCategories">0</div>
+                <small class="text-muted">分类数</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 时间轴 -->
+<div class="card">
+    <div class="card-header">
+        时间轴
+        <span class="card-count" id="photoCount">共 0 张</span>
+    </div>
+    <div class="card-body">
+        <div id="loadingState" class="loading-text">⏳ 加载中...</div>
+        <div id="emptyState" class="empty-block" style="display:none;">
+            <div class="empty-icon">📷</div>
+            <p>暂无照片，点击上传按钮添加</p>
+        </div>
+        <div id="timelineContainer" style="display:none;max-height:850px;overflow-y:auto;">
+            <!-- 时间轴组将在这里动态生成 -->
+        </div>
+    </div>
+</div>
+
+<!-- 图片查看器弹窗 -->
+<div id="lightboxModal" class="modal-overlay" onclick="PicturePage.closeLightbox(event)">
+    <div class="lightbox-content">
+        <button class="lightbox-close" onclick="PicturePage.closeLightboxDirect()">✕</button>
+        <img id="lightboxImg" src="" alt="">
+        <div class="lightbox-info" id="lightboxInfo"></div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/pictures.js?v=2"></script>
+{% endblock %}

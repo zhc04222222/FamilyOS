@@ -1,0 +1,60 @@
+{# ============================================================ #}
+{# FamilyOS - 孕期视图                                          #}
+{# 桌面：日历(左) | 预产期(右上)+产检(右下)                     #}
+{# 手机：预产期(置顶) → 日历 → 产检                             #}
+{# ============================================================ #}
+    <div class="pregnancy-grid">
+        <!-- 预产期倒计时（桌面右上，手机置顶一行） -->
+        <div class="pregnancy-due">
+            <div class="card" style="border-color:var(--color-pregnancy);background:var(--color-pregnancy-bg);">
+                <div class="card-body text-center" id="dueCardBody">
+                    <div class="due-card-desktop" style="font-size:var(--font-size-sm);color:#744210;">⏰ 距离预产期</div>
+                    <div class="due-card-mobile" style="font-size:var(--font-size-sm);color:#744210;display:none;">⏰ 距离预产期</div>
+                    <div style="font-size:var(--font-size-2xl);font-weight:700;color:var(--color-pregnancy);" id="daysUntil">?</div>
+                    <div style="font-size:var(--font-size-sm);color:#744210;">天</div>
+                    <small style="color:var(--color-text-muted);font-size:var(--font-size-xs);display:block;margin-top:var(--spacing-xs);" id="dueDateDisplay">请先在设置填写预产期</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- 日历 -->
+        <div class="pregnancy-calendar">
+            <div class="card">
+                <div class="card-header">📅 日历视图</div>
+                <div class="card-body" style="padding:0;">
+                    <div class="calendar-container" id="calendarContainer">
+                        <div style="text-align:center;padding:var(--spacing-4xl);color:var(--color-text-muted);">⏳ 加载中...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 产检列表 -->
+        <div class="pregnancy-checkup">
+            <div class="card">
+                <div class="card-header">🩺 近期产检</div>
+                <div class="card-body" id="checkupList" style="max-height:278px;overflow-y:auto;padding:var(--spacing-sm) var(--spacing-md);">
+                    <div class="text-muted" style="text-align:center;padding:var(--spacing-lg);font-size:var(--font-size-sm);">📋 暂无产检记录</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 快速添加记录 -->
+        <div class="pregnancy-add-record">
+            <div class="card" style="border-color:var(--color-pregnancy);">
+                <div class="card-header">➕ 添加孕期记录</div>
+                <div class="card-body" style="padding:var(--spacing-md);">
+                    <div style="display:flex;flex-direction:column;gap:var(--spacing-sm);">
+                        <input type="text" id="pregQuickTitle" placeholder="标题（如：NT检查、四维彩超）" style="padding:8px 12px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;">
+                        <select id="pregQuickCategory" style="padding:8px 12px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;">
+                            <option value="checkup">🩺 产检</option>
+                            <option value="task">📌 待办</option>
+                        </select>
+                        <input type="datetime-local" id="pregQuickTime" style="padding:8px 12px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;">
+                        <textarea id="pregQuickContent" placeholder="备注/详情（检查结果、医嘱等）" rows="2" style="padding:8px 12px;border:1px solid var(--color-border);border-radius:6px;font-size:13px;resize:vertical;font-family:inherit;"></textarea>
+                        <button class="btn btn-success btn-sm" id="pregQuickAddBtn" style="width:100%;">➕ 添加</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
